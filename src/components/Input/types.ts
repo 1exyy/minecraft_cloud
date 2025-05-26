@@ -1,0 +1,1 @@
+export type TInputVariant = "console" | "base";
