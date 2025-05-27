@@ -1,0 +1,12 @@
+.chart {
+}
+
+.chart + div{
+  margin: 0 !important;
+}
+
+.data {
+  display: grid;
+  text-align: center;
+  font-size: 56px;
+}
