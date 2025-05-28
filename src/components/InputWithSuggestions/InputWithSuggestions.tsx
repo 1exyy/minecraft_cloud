@@ -1,6 +1,6 @@
-import React, {useState, useEffect, useRef} from 'react';
-import type {KeyboardEvent, ChangeEvent} from 'react';
-import styles from './InputWithSuggestions.module.scss'
+import React, { useState, useEffect, useRef } from 'react';
+import type { KeyboardEvent, ChangeEvent } from 'react';
+import styles from './InputWithSuggestions.module.scss';
 
 interface InputWithSuggestionsProps {
     commands: string[];
@@ -22,74 +22,83 @@ export const InputWithSuggestions: React.FC<InputWithSuggestionsProps> = ({
     const [showSuggestions, setShowSuggestions] = useState(false);
     const inputRef = useRef<HTMLInputElement>(null);
 
+    const getCommandBase = (input: string) => {
+        const trimmed = input.trim();
+        const firstSpace = trimmed.indexOf(' ');
+        return firstSpace > 0 ? trimmed.slice(0, firstSpace) : trimmed;
+    };
+
+    const isExactMatch = (cmd: string) =>
+        commands.some(c => c.toLowerCase() === cmd.toLowerCase());
+
     useEffect(() => {
-        if (!value.trim() || !showSuggestions) {
+        const base = getCommandBase(value);
+        const hasArgs = value.trim().includes(' ');
+        const matched = commands.filter(cmd =>
+            cmd.toLowerCase().startsWith(base.toLowerCase())
+        );
+
+        if (isExactMatch(base) && hasArgs) {
             setSuggestions([]);
             return;
         }
 
-        const firstSpaceIndex = value.indexOf(' ');
-        const commandBase = firstSpaceIndex > 0
-            ? value.substring(0, firstSpaceIndex)
-            : value;
-
-        const matched = commands.filter(cmd =>
-            cmd.toLowerCase().startsWith(commandBase.toLowerCase())
-        );
-
         setSuggestions(matched);
-        setSelectedIndex(matched.length > 0 ? 0 : -1);
-    }, [value, commands, showSuggestions]);
+        setSelectedIndex(-1);
+    }, [value, commands]);
 
     const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
         onChange(e.target.value);
         setShowSuggestions(true);
     };
 
-    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-        if (showSuggestions && suggestions.length > 0) {
-            switch (e.key) {
-                case 'ArrowDown':
+    const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+        const base = getCommandBase(value);
+        const matched = isExactMatch(base);
+
+        switch (e.key) {
+            case 'ArrowDown':
+                e.preventDefault();
+                setSelectedIndex(prev =>
+                    prev < suggestions.length - 1 ? prev + 1 : 0
+                );
+                break;
+
+            case 'ArrowUp':
+                e.preventDefault();
+                setSelectedIndex(prev =>
+                    prev > 0 ? prev - 1 : suggestions.length - 1
+                );
+                break;
+
+            case 'Enter':
+                if (
+                    selectedIndex >= 0 &&
+                    suggestions[selectedIndex].toLowerCase() !== base.toLowerCase()
+                ) {
                     e.preventDefault();
-                    e.stopPropagation();
-                    setSelectedIndex(prev =>
-                        prev < suggestions.length - 1 ? prev + 1 : -1
-                    );
+                    applySuggestion(suggestions[selectedIndex]);
                     return;
+                }
 
-                case 'ArrowUp':
+                if (matched) break;
+
+                e.preventDefault();
+                break;
+
+            case 'Tab':
+                if (selectedIndex >= 0) {
                     e.preventDefault();
-                    e.stopPropagation();
-                    setSelectedIndex(prev =>
-                        prev > 0 ? prev - 1 : suggestions.length - 1
-                    );
-                    return;
+                    applySuggestion(suggestions[selectedIndex]);
+                }
+                break;
 
-                case 'Enter':
-                    if (selectedIndex >= 0) {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        applySuggestion(suggestions[selectedIndex]);
-                    }
-                    return;
+            case 'Escape':
+                setShowSuggestions(false);
+                break;
 
-                case 'Tab':
-                    if (selectedIndex >= 0) {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        applySuggestion(suggestions[selectedIndex]);
-                    }
-                    return;
-
-                case 'Escape':
-                    e.preventDefault();
-                    e.stopPropagation();
-                    setShowSuggestions(false);
-                    return;
-
-                default:
-                    break;
-            }
+            default:
+                break;
         }
 
         if (onKeyDown) {
@@ -97,16 +106,13 @@ export const InputWithSuggestions: React.FC<InputWithSuggestionsProps> = ({
         }
     };
 
-    const applySuggestion = (command: string) => {
-        const preserveArgs = () => {
-            const firstSpaceIndex = value.indexOf(' ');
-            return firstSpaceIndex > 0 ? value.substring(firstSpaceIndex) : '';
-        };
-
-        onChange(command + preserveArgs());
+    const applySuggestion = (command: string, preserveArgs = true) => {
+        const suffix = preserveArgs
+            ? value.slice(value.indexOf(' ')).trimStart()
+            : '';
+        onChange(command + (suffix ? ' ' + suffix : ''));
         setShowSuggestions(false);
         setSelectedIndex(-1);
-
         setTimeout(() => inputRef.current?.focus(), 10);
     };
 
