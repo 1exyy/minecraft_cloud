@@ -1,9 +1,8 @@
-import ServerPage from "./pages/ServerPage.tsx";
+import {RouterProvider} from "react-router";
+import routes from "./router";
 
-function App() {
-    return (
-        <ServerPage/>
-    )
-}
+const App = () => {
+    return <RouterProvider router={routes} />;
+};
 
-export default App
+export default App;

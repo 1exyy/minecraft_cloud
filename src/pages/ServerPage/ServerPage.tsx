@@ -1,13 +1,13 @@
 import styles from './ServerPage.module.scss'
-import {useSocket} from "../hooks/useSocket.hook.ts";
-import {endpoints} from "../api/endpoints.ts";
+import {useSocket} from "../../hooks/useSocket.hook.ts";
+import {endpoints} from "../../api/endpoints.ts";
 import {useCallback, useState} from "react";
-import {Console} from "../components/Console/Console.tsx";
-import type {IServerMonitoring} from "../components/Monitoring/types.ts";
-import {Monitoring} from "../components/Monitoring/Monitoring.tsx";
+import {Console} from "../../components/Console/Console.tsx";
+import type {IServerMonitoring} from "../../components/Monitoring/types.ts";
+import {Monitoring} from "../../components/Monitoring/Monitoring.tsx";
 import clsx from "clsx";
-import {consoleMessage} from "../utils/consoleMessageFormat.ts";
-import {AnimatedBox} from "../components/AnimatedBox/AnimatedBox.tsx";
+import {consoleMessage} from "../../utils/consoleMessageFormat.ts";
+import {AnimatedBox} from "../../components/AnimatedBox/AnimatedBox.tsx";
 
 const monitoringEmptyData: IServerMonitoring = {
     cpu: {

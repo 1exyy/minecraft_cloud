@@ -1,6 +1,5 @@
 import type {ComponentPropsWithoutRef, FC, KeyboardEventHandler} from "react";
 import styles from './Console.module.scss';
-// import {Input} from "../Input/Input.tsx";
 import clsx from "clsx";
 import React, {useCallback, useEffect, useRef, useState} from "react";
 import {InputWithSuggestions} from "../InputWithSuggestions/InputWithSuggestions.tsx";
