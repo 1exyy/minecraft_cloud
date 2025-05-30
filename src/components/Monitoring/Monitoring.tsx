@@ -1,14 +1,47 @@
 import type {FC} from "react";
-import type {IServerMonitoring} from "./types.ts";
-import styles from './Monitoring.module.scss';
-import clsx from "clsx";
-import 'react-circular-progressbar/dist/styles.css';
-import {Chart} from "../Chart/Chart.tsx";
+import {Box, Typography, styled} from '@mui/material';
+import {Chart} from "../Chart/Chart";
 import {convertBytes} from "../../utils/converters.ts";
+import type {IServerMonitoring} from "./types.ts";
 
 interface IMonitoringProps {
     monitoringData: IServerMonitoring;
 }
+
+const MonitoringWrapper = styled(Box)(({theme}) => ({
+    display: 'grid',
+    alignItems: 'center',
+    gridRowGap: '32px',
+    padding: theme.spacing(3),
+    borderRadius: '24px',
+    backgroundColor: 'rgba(26, 26, 26, 0.85)',
+    backdropFilter: 'blur(10px)',
+    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.5)',
+}));
+
+const InfoContainer = styled(Box)(({theme}) => ({
+    display: 'grid',
+    width: "100%",
+    gridTemplateColumns: '1fr 1fr 1fr',
+    '& span': {
+        color: '#e0e0e0',
+        fontSize: '24px',
+        textAlign: 'center',
+        borderColor: '#e0e0e0',
+        borderStyle: 'solid',
+        borderWidth: '0 0 0 2px',
+        padding: theme.spacing(0, 1),
+    },
+    '& span:last-child': {
+        borderRight: '2px solid #e0e0e0',
+    }
+}));
+
+const Title = styled(Typography)({
+    color: '#e0e0e0',
+    fontSize: '48px',
+    textAlign: 'center',
+});
 
 export const Monitoring: FC<IMonitoringProps> = ({monitoringData}) => {
     const getComputedValueCPU = () => {
@@ -20,28 +53,26 @@ export const Monitoring: FC<IMonitoringProps> = ({monitoringData}) => {
     }
 
     return (
-        <>
-            <div className={clsx(styles.wrapper, "frosted-glass")}>
-                <div className={styles.title}>Загрузка CPU</div>
+        <Box display="grid" gap={3}>
+            <MonitoringWrapper>
+                <Title>Загрузка CPU</Title>
                 <Chart percent={getComputedValueCPU()}/>
-                <div className={styles.info}>
+                <InfoContainer>
                     <span>total: <br/>{monitoringData.cpu.total}</span>
                     <span>used: <br/>{parseFloat(monitoringData.cpu.used.toFixed(2))}</span>
                     <span>percent: <br/>{getComputedValueCPU()}%</span>
-                </div>
-            </div>
+                </InfoContainer>
+            </MonitoringWrapper>
 
-            <div className={clsx(styles.wrapper, "frosted-glass")}>
-                <div className={styles.title}>Загрузка ОЗУ</div>
+            <MonitoringWrapper>
+                <Title>Загрузка ОЗУ</Title>
                 <Chart percent={getComputedValueMemory()}/>
-
-                <div className={styles.info}>
+                <InfoContainer>
                     <span>total: <br/>{convertBytes(monitoringData.memory.total)}</span>
                     <span>used: <br/>{convertBytes(monitoringData.memory.used)}</span>
                     <span>percent: <br/>{getComputedValueMemory()}%</span>
-                </div>
-            </div>
-        </>
+                </InfoContainer>
+            </MonitoringWrapper>
+        </Box>
     );
 };
-

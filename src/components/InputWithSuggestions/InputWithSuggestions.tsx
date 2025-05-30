@@ -1,6 +1,16 @@
-import React, { useState, useEffect, useRef } from 'react';
-import type { KeyboardEvent, ChangeEvent } from 'react';
-import styles from './InputWithSuggestions.module.scss';
+import React, {useState, useEffect, useRef} from 'react';
+import type {KeyboardEvent, ChangeEvent} from 'react'
+import {
+    TextField,
+    Paper,
+    List,
+    ListItem,
+    ListItemText,
+    Popper,
+    Grow,
+    ClickAwayListener,
+    styled
+} from '@mui/material';
 
 interface InputWithSuggestionsProps {
     commands: string[];
@@ -8,19 +18,40 @@ interface InputWithSuggestionsProps {
     onChange: (value: string) => void;
     onKeyDown?: (e: KeyboardEvent<HTMLInputElement>) => void;
     placeholder?: string;
+    fullWidth?: boolean;
 }
+
+const SuggestionItem = styled(ListItem)<{ selected?: boolean }>(({ theme }) => ({
+    cursor: 'pointer',
+    padding: theme.spacing(0.5, 2),
+    transition: 'all 0.2s',
+    color: '#e0e0e0',
+    '&:hover, &.Mui-selected': {
+        backgroundColor: 'rgba(255, 255, 255, 0.1)',
+        fontWeight: 'bold',
+    },
+}));
+
+const SuggestionsPaper = styled(Paper)(() => ({
+    background: 'rgba(40, 40, 40, 0.85)',
+    backdropFilter: 'blur(10px)',
+    color: '#e0e0e0',
+    borderRadius: '8px',
+    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.5)',
+}));
 
 export const InputWithSuggestions: React.FC<InputWithSuggestionsProps> = ({
                                                                               commands,
                                                                               value,
                                                                               onChange,
                                                                               onKeyDown,
-                                                                              placeholder = 'Введите команду...'
+                                                                              placeholder = 'Введите команду...',
+                                                                              fullWidth = false
                                                                           }) => {
     const [suggestions, setSuggestions] = useState<string[]>([]);
     const [selectedIndex, setSelectedIndex] = useState(-1);
     const [showSuggestions, setShowSuggestions] = useState(false);
-    const inputRef = useRef<HTMLInputElement>(null);
+    const anchorRef = useRef<HTMLDivElement>(null);
 
     const getCommandBase = (input: string) => {
         const trimmed = input.trim();
@@ -113,48 +144,94 @@ export const InputWithSuggestions: React.FC<InputWithSuggestionsProps> = ({
         onChange(command + (suffix ? ' ' + suffix : ''));
         setShowSuggestions(false);
         setSelectedIndex(-1);
-        setTimeout(() => inputRef.current?.focus(), 10);
     };
 
     const handleBlur = () => {
         setTimeout(() => setShowSuggestions(false), 200);
     };
 
+    const handleSuggestionClick = (cmd: string) => {
+        applySuggestion(cmd);
+        anchorRef.current?.querySelector('input')?.focus();
+    };
+
     return (
-        <div className={styles.container}>
-            <input
-                ref={inputRef}
-                type="text"
+        <div ref={anchorRef} style={{width: fullWidth ? '100%' : 'auto', position: 'relative'}}>
+            <TextField
+                fullWidth={fullWidth}
                 value={value}
                 onChange={handleChange}
                 onKeyDown={handleKeyDown}
-                onFocus={() => setShowSuggestions(true)}
                 onBlur={handleBlur}
                 placeholder={placeholder}
-                className={styles.input}
+                variant="standard"
+                InputProps={{
+                    disableUnderline: true,
+                    style: {
+                        color: '#e0e0e0',
+                        fontSize: '18px',
+                        fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
+                    }
+                }}
+                sx={{
+                    '& .MuiInputBase-root': {
+                        padding: 0
+                    },
+                    '& .MuiInputBase-input::placeholder': {
+                        color: 'rgba(224, 224, 224, 0.7)',
+                    }
+                }}
             />
 
-            {showSuggestions && suggestions.length > 0 && (
-                <div className={styles.suggestionsContainer}>
-                    {suggestions.map((cmd, index) => (
-                        <div
-                            key={cmd}
-                            className={`${styles.suggestionItem} ${
-                                index === selectedIndex
-                                    ? `${styles.suggestionItemHovered} ${styles.suggestionItemSelected}`
-                                    : ''
-                            }`}
-                            onMouseEnter={() => setSelectedIndex(index)}
-                            onMouseDown={(e) => {
-                                e.preventDefault();
-                                applySuggestion(cmd);
-                            }}
-                        >
-                            {cmd}
-                        </div>
-                    ))}
-                </div>
-            )}
+            <Popper
+                open={showSuggestions && suggestions.length > 0}
+                anchorEl={anchorRef.current}
+                placement="top-start"
+                transition
+                disablePortal
+                style={{
+                    width: anchorRef.current?.clientWidth,
+                    zIndex: 1300,
+                    maxHeight: '200px',
+                    overflowY: 'auto',
+                }}
+                modifiers={[
+                    {
+                        name: 'flip',
+                        enabled: false,
+                    },
+                    {
+                        name: 'preventOverflow',
+                        enabled: true,
+                        options: {
+                            altBoundary: true,
+                            tether: false,
+                            rootBoundary: 'document',
+                        },
+                    }
+                ]}
+            >
+                {({TransitionProps}) => (
+                    <Grow {...TransitionProps} style={{transformOrigin: 'bottom center'}}>
+                        <SuggestionsPaper elevation={8}>
+                            <ClickAwayListener onClickAway={() => setShowSuggestions(false)}>
+                                <List dense sx={{py: 0.5}}>
+                                    {suggestions.map((cmd, index) => (
+                                        <SuggestionItem
+                                            key={cmd}
+                                            selected={index === selectedIndex}
+                                            onMouseEnter={() => setSelectedIndex(index)}
+                                            onClick={() => handleSuggestionClick(cmd)}
+                                        >
+                                            <ListItemText primary={cmd} primaryTypographyProps={{fontSize: '14px'}}/>
+                                        </SuggestionItem>
+                                    ))}
+                                </List>
+                            </ClickAwayListener>
+                        </SuggestionsPaper>
+                    </Grow>
+                )}
+            </Popper>
         </div>
     );
 };

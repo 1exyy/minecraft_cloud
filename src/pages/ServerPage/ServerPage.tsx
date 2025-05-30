@@ -1,13 +1,15 @@
-import styles from './ServerPage.module.scss'
-import {useSocket} from "../../hooks/useSocket.hook.ts";
-import {endpoints} from "../../api/endpoints.ts";
-import {useCallback, useState} from "react";
-import {Console} from "../../components/Console/Console.tsx";
-import type {IServerMonitoring} from "../../components/Monitoring/types.ts";
-import {Monitoring} from "../../components/Monitoring/Monitoring.tsx";
-import clsx from "clsx";
-import {consoleMessage} from "../../utils/consoleMessageFormat.ts";
-import {AnimatedBox} from "../../components/AnimatedBox/AnimatedBox.tsx";
+import { useCallback, useState } from 'react';
+import { Box, IconButton, styled } from '@mui/material';
+import { useSocket } from "../../hooks/useSocket.hook.ts";
+import { endpoints } from "../../api/endpoints.ts";
+import { Console } from "../../components/Console/Console.tsx";
+import type { IServerMonitoring } from "../../components/Monitoring/types.ts";
+import { Monitoring } from "../../components/Monitoring/Monitoring.tsx";
+import { consoleMessage } from "../../utils/consoleMessageFormat.ts";
+import PowerSettingsNewIcon from '@mui/icons-material/PowerSettingsNew';
+import RestartAltIcon from '@mui/icons-material/RestartAlt';
+import SettingsIcon from '@mui/icons-material/Settings';
+import { AnimatedBox } from "../../components/AnimatedBox/AnimatedBox.tsx";
 
 const monitoringEmptyData: IServerMonitoring = {
     cpu: {
@@ -18,12 +20,56 @@ const monitoringEmptyData: IServerMonitoring = {
         used: 0,
         total: 0
     }
-}
+};
+
+const ServerPageContainer = styled(Box)(({ theme }) => ({
+    display: 'flex',
+    height: '100%',
+    width: '100%',
+    position: 'relative',
+    padding: theme.spacing(3),
+    gap: theme.spacing(4),
+}));
+
+const ControlsContainer = styled(Box)(({ theme }) => ({
+    position: 'absolute',
+    left: '50%',
+    transform: 'translateX(-50%)',
+    top: theme.spacing(1.5),
+    zIndex: 2,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: theme.spacing(1.5),
+    backgroundColor: 'rgba(255, 255, 255, 0.56)',
+    borderRadius: '24px',
+    minWidth: '200px',
+    padding: theme.spacing(0, 1.5),
+    height: '64px',
+    backdropFilter: 'blur(4px)',
+}));
+
+const MonitoringContainer = styled(Box)(({ theme }) => ({
+    height: '100%',
+    maxWidth: '500px',
+    width: '500px',
+    display: 'grid',
+    gridTemplateRows: '1fr 1fr',
+    gap: theme.spacing(4),
+    transition: 'all 0.5s ease',
+}));
+
+const ConsoleWrapper = styled(Box)({
+    position: 'relative',
+    flexGrow: 1,
+    minWidth: 0, // Важно для корректного сжатия
+});
+
 const ServerPage = () => {
     const [logs, setLogs] = useState<string[]>([]);
     const [isServerStart, setIsServerStart] = useState<boolean>(false);
     const [monitoring, setMonitoring] = useState<IServerMonitoring>(monitoringEmptyData);
-    const {send, isConnected} = useSocket(endpoints.SERVER, {});
+    const { send, isConnected } = useSocket(endpoints.SERVER, {});
 
     useSocket(endpoints.CONSOLE, {
         events: {
@@ -47,7 +93,7 @@ const ServerPage = () => {
     const sendCommand = useCallback((command: string) => {
         send('write', command);
         addMessage(consoleMessage(command, "COMMAND"));
-    }, []);
+    }, [send]);
 
     const addMessage = useCallback((message: string) => {
         setLogs(prevLogs => [...prevLogs.slice(-999), message]);
@@ -59,38 +105,68 @@ const ServerPage = () => {
 
     const startHandler = useCallback(() => {
         setIsServerStart(true);
-        send('start', {command: "java", arguments: ["-jar", "server.jar", "nogui"]});
+        send('start', { command: "java", arguments: ["-jar", "server.jar", "nogui"] });
     }, [send]);
 
     const stopHandler = useCallback(() => {
         send('stop');
-    }, [send])
+    }, [send]);
 
     return (
-        <div className={clsx(styles.container, {[styles.started]: isServerStart})}>
+        <ServerPageContainer>
             <AnimatedBox
                 isVisible={isServerStart}
-                className={styles.monitoring}
+                direction="left"
+                type="width"
+                duration={500}
+                sx={{
+                    maxWidth: '500px',
+                    width: '500px',
+                    flexShrink: 0,
+                }}
             >
-                <Monitoring monitoringData={monitoring}/>
+                <MonitoringContainer>
+                    <Monitoring monitoringData={monitoring} />
+                </MonitoringContainer>
             </AnimatedBox>
-            <div className={styles.console_wrapper}>
-                <div className={styles.controls}>
-                    <button
+
+            <ConsoleWrapper>
+                <ControlsContainer>
+                    <IconButton
                         onClick={serverSwitch}
                         disabled={!isConnected}
-                        title={isServerStart ? "Выключить" : "Включить"}>
-                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path
-                                d="M12 3V12M18.3611 5.64001C19.6195 6.8988 20.4764 8.50246 20.8234 10.2482C21.1704 11.994 20.992 13.8034 20.3107 15.4478C19.6295 17.0921 18.4759 18.4976 16.9959 19.4864C15.5159 20.4752 13.776 21.0029 11.9961 21.0029C10.2162 21.0029 8.47625 20.4752 6.99627 19.4864C5.51629 18.4976 4.36274 17.0921 3.68146 15.4478C3.00019 13.8034 2.82179 11.994 3.16882 10.2482C3.51584 8.50246 4.37272 6.8988 5.6311 5.64001"
-                                stroke="#000000" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                        </svg>
-                    </button>
-                </div>
-                <Console logs={logs} sendCommand={sendCommand}
-                         className={clsx(styles.console, {[styles.started]: isServerStart})}/>
-            </div>
-        </div>
+                        title={isServerStart ? "Выключить" : "Включить"}
+                        sx={{
+                            ...(isServerStart && {
+                                boxShadow: '1px 1px 3px #1a1a1a',
+                                backgroundColor: 'rgba(0, 0, 0, 0.1)',
+                                padding: '4px'
+                            })
+                        }}
+                    >
+                        <PowerSettingsNewIcon fontSize="large" />
+                    </IconButton>
+
+                    <IconButton title="Перезагрузить">
+                        <RestartAltIcon fontSize="large" />
+                    </IconButton>
+
+                    <IconButton title="Настройки">
+                        <SettingsIcon fontSize="large" />
+                    </IconButton>
+                </ControlsContainer>
+
+                <Console
+                    logs={logs}
+                    sendCommand={sendCommand}
+                    sx={{
+                        width: '100%',
+                        height: '100%',
+                        minWidth: 0, // Важно для корректного сжатия
+                    }}
+                />
+            </ConsoleWrapper>
+        </ServerPageContainer>
     );
 };
 
