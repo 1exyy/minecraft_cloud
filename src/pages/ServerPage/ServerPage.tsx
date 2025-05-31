@@ -1,15 +1,16 @@
-import { useCallback, useState } from 'react';
-import { Box, IconButton, styled } from '@mui/material';
-import { useSocket } from "../../hooks/useSocket.hook.ts";
-import { endpoints } from "../../api/endpoints.ts";
-import { Console } from "../../components/Console/Console.tsx";
-import type { IServerMonitoring } from "../../components/Monitoring/types.ts";
-import { Monitoring } from "../../components/Monitoring/Monitoring.tsx";
-import { consoleMessage } from "../../utils/consoleMessageFormat.ts";
+import {useCallback, useState} from 'react';
+import {Box, IconButton, styled} from '@mui/material';
+import {useSocket} from "../../hooks/useSocket.hook.ts";
+import {endpoints} from "../../api/endpoints.ts";
+import {Console} from "../../components/Console/Console.tsx";
+import type {IServerMonitoring} from "../../components/Monitoring/types.ts";
+import {Monitoring} from "../../components/Monitoring/Monitoring.tsx";
+import {consoleMessage} from "../../utils/consoleMessageFormat.ts";
 import PowerSettingsNewIcon from '@mui/icons-material/PowerSettingsNew';
 import RestartAltIcon from '@mui/icons-material/RestartAlt';
 import SettingsIcon from '@mui/icons-material/Settings';
-import { AnimatedBox } from "../../components/AnimatedBox/AnimatedBox.tsx";
+import {AnimatedBox} from "../../components/AnimatedBox/AnimatedBox.tsx";
+import {keyframes} from '@mui/system';
 
 const monitoringEmptyData: IServerMonitoring = {
     cpu: {
@@ -22,7 +23,18 @@ const monitoringEmptyData: IServerMonitoring = {
     }
 };
 
-const ServerPageContainer = styled(Box)(({ theme }) => ({
+const fadeInTop = keyframes`
+  from {
+    opacity: 0;
+    transform: translate(-50%, -20px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+`;
+
+const ServerPageContainer = styled(Box)(({theme}) => ({
     display: 'flex',
     height: '100%',
     width: '100%',
@@ -31,7 +43,7 @@ const ServerPageContainer = styled(Box)(({ theme }) => ({
     gap: theme.spacing(4),
 }));
 
-const ControlsContainer = styled(Box)(({ theme }) => ({
+const ControlsContainer = styled(Box)(({theme}) => ({
     position: 'absolute',
     left: '50%',
     transform: 'translateX(-50%)',
@@ -47,9 +59,11 @@ const ControlsContainer = styled(Box)(({ theme }) => ({
     padding: theme.spacing(0, 1.5),
     height: '64px',
     backdropFilter: 'blur(4px)',
+    animation: `${fadeInTop} 0.5s ease-out forwards`,
+    opacity: 0,
 }));
 
-const MonitoringContainer = styled(Box)(({ theme }) => ({
+const MonitoringContainer = styled(Box)(({theme}) => ({
     height: '100%',
     maxWidth: '500px',
     width: '500px',
@@ -62,14 +76,14 @@ const MonitoringContainer = styled(Box)(({ theme }) => ({
 const ConsoleWrapper = styled(Box)({
     position: 'relative',
     flexGrow: 1,
-    minWidth: 0, // Важно для корректного сжатия
+    minWidth: 0,
 });
 
 const ServerPage = () => {
     const [logs, setLogs] = useState<string[]>([]);
     const [isServerStart, setIsServerStart] = useState<boolean>(false);
     const [monitoring, setMonitoring] = useState<IServerMonitoring>(monitoringEmptyData);
-    const { send, isConnected } = useSocket(endpoints.SERVER, {});
+    const {send, isConnected} = useSocket(endpoints.SERVER, {});
 
     useSocket(endpoints.CONSOLE, {
         events: {
@@ -105,7 +119,7 @@ const ServerPage = () => {
 
     const startHandler = useCallback(() => {
         setIsServerStart(true);
-        send('start', { command: "java", arguments: ["-jar", "server.jar", "nogui"] });
+        send('start', {command: "java", arguments: ["-jar", "server.jar", "nogui"]});
     }, [send]);
 
     const stopHandler = useCallback(() => {
@@ -126,7 +140,7 @@ const ServerPage = () => {
                 }}
             >
                 <MonitoringContainer>
-                    <Monitoring monitoringData={monitoring} />
+                    <Monitoring monitoringData={monitoring}/>
                 </MonitoringContainer>
             </AnimatedBox>
 
@@ -144,15 +158,15 @@ const ServerPage = () => {
                             })
                         }}
                     >
-                        <PowerSettingsNewIcon fontSize="large" />
+                        <PowerSettingsNewIcon fontSize="large"/>
                     </IconButton>
 
                     <IconButton title="Перезагрузить">
-                        <RestartAltIcon fontSize="large" />
+                        <RestartAltIcon fontSize="large"/>
                     </IconButton>
 
                     <IconButton title="Настройки">
-                        <SettingsIcon fontSize="large" />
+                        <SettingsIcon fontSize="large"/>
                     </IconButton>
                 </ControlsContainer>
 
@@ -162,7 +176,7 @@ const ServerPage = () => {
                     sx={{
                         width: '100%',
                         height: '100%',
-                        minWidth: 0, // Важно для корректного сжатия
+                        minWidth: 0,
                     }}
                 />
             </ConsoleWrapper>
