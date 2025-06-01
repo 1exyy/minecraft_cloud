@@ -9,8 +9,10 @@ import {consoleMessage} from "../../utils/consoleMessageFormat.ts";
 import PowerSettingsNewIcon from '@mui/icons-material/PowerSettingsNew';
 import RestartAltIcon from '@mui/icons-material/RestartAlt';
 import SettingsIcon from '@mui/icons-material/Settings';
+import FolderIcon from '@mui/icons-material/Folder';
 import {AnimatedBox} from "../../components/AnimatedBox/AnimatedBox.tsx";
 import {keyframes} from '@mui/system';
+import {Link} from 'react-router'
 
 const monitoringEmptyData: IServerMonitoring = {
     cpu: {
@@ -161,13 +163,19 @@ const ServerPage = () => {
                         <PowerSettingsNewIcon fontSize="large"/>
                     </IconButton>
 
-                    <IconButton title="Перезагрузить">
+                    <IconButton
+                        disabled={!isConnected}
+                        title="Перезагрузить">
                         <RestartAltIcon fontSize="large"/>
                     </IconButton>
 
                     <IconButton title="Настройки">
                         <SettingsIcon fontSize="large"/>
                     </IconButton>
+
+                    <Link to="/server/drive" title="Файлы сервера">
+                        <FolderIcon fontSize="large"/>
+                    </Link>
                 </ControlsContainer>
 
                 <Console

@@ -24,7 +24,6 @@ const getAnimation = (direction: string, type: string) => {
 
     const isWidth = type === 'width';
 
-    // Анимации входа
     if (direction === 'left' && isWidth) {
         return keyframes`
             0% { 

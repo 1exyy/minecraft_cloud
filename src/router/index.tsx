@@ -4,6 +4,7 @@ import DrivePage from "../pages/DrivePage/DrivePage.tsx";
 import {createBrowserRouter} from "react-router";
 import RequireAuth from "../components/hoc/RequireAuth.tsx";
 
+
 const routes = createBrowserRouter([
     {
         path: '/server',
@@ -14,8 +15,10 @@ const routes = createBrowserRouter([
         ),
     },
     {
-        path: '/drive',
-        element: <DrivePage/>,
+        path: "/server/drive",
+
+
+        element: <DrivePage/>
     },
     {
         path: '*',
