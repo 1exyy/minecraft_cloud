@@ -16,8 +16,6 @@ const routes = createBrowserRouter([
     },
     {
         path: "/server/drive",
-
-
         element: <DrivePage/>
     },
     {

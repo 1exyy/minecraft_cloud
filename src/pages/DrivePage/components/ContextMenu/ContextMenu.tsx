@@ -1,110 +1,59 @@
-import React, { useRef, useEffect } from 'react';
-import { Box, List, ListItem, ListItemText, Paper, Typography } from '@mui/material';
-import { styled } from '@mui/system';
-import type { FileSystemItem } from '../../types';
+import { Menu, MenuItem, ListItemIcon, ListItemText } from '@mui/material';
+import DeleteIcon from '@mui/icons-material/Delete';
+import EditIcon from '@mui/icons-material/Edit';
+import type {ContextMenu} from "../../types.ts";
 
-const MenuPaper = styled(Paper)(() => ({
-    position: 'absolute',
-    zIndex: 1300,
-    minWidth: 200,
-    borderRadius: '8px',
-    backgroundColor: 'rgba(40, 40, 40, 0.95)',
-    backdropFilter: 'blur(10px)',
-    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.7)',
-    overflow: 'hidden',
-}));
-
-const MenuItem = styled(ListItem)(({ theme }) => ({
-    cursor: 'pointer',
-    padding: theme.spacing(1, 2),
-    '&:hover': {
-        backgroundColor: 'rgba(189, 66, 250, 0.3)',
-    },
-}));
-
-interface ContextMenuProps {
-    item: FileSystemItem;
-    position: { x: number; y: number };
-    onClose: () => void;
+interface FileContextMenuProps {
+    contextMenu: ContextMenu | null;
+    handleClose: () => void;
     onRename: () => void;
     onDelete: () => void;
-    onDownload?: () => void;
-    onNewFile?: () => void;
-    onNewFolder?: () => void;
 }
 
-export const ContextMenu: React.FC<ContextMenuProps> = ({
-                                                            item,
-                                                            position,
-                                                            onClose,
-                                                            onRename,
-                                                            onDelete,
-                                                            onDownload,
-                                                            onNewFile,
-                                                            onNewFolder,
-                                                        }) => {
-    const menuRef = useRef<HTMLDivElement>(null);
-
-    useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-                onClose();
-            }
-        };
-
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => {
-            document.removeEventListener('mousedown', handleClickOutside);
-        };
-    }, [onClose]);
-
-    const handleAction = (action: () => void) => {
-        action();
-        onClose();
-    };
-
+export const FileContextMenu = ({
+                                    contextMenu,
+                                    handleClose,
+                                    onRename,
+                                    onDelete
+                                }: FileContextMenuProps) => {
     return (
-        <MenuPaper
-            ref={menuRef}
-            style={{
-                left: position.x,
-                top: position.y,
-                transform: 'translateY(-100%)'
+        <Menu
+            open={contextMenu !== null}
+            onClose={handleClose}
+            anchorReference="anchorPosition"
+            anchorPosition={
+                contextMenu !== null
+                    ? { top: contextMenu.mouseY, left: contextMenu.mouseX }
+                    : undefined
+            }
+            PaperProps={{
+                sx: {
+                    backgroundColor: 'rgba(26, 26, 26, 0.95)',
+                    backdropFilter: 'blur(10px)',
+                    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.5)',
+                    borderRadius: '12px',
+                    overflow: 'hidden',
+                    '& .MuiMenuItem-root': {
+                        color: '#e0e0e0',
+                        '&:hover': {
+                            backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                        },
+                    },
+                },
             }}
         >
-            <List dense sx={{ py: 0.5 }}>
-                <Box px={2} py={1} borderBottom="1px solid rgba(255,255,255,0.1)">
-                    <Typography variant="subtitle2" color="#e0e0e0" noWrap>
-                        {item.name}
-                    </Typography>
-                </Box>
-
-                {item.type === 'file' && onDownload && (
-                    <MenuItem onClick={() => handleAction(onDownload)}>
-                        <ListItemText primary="Скачать" />
-                    </MenuItem>
-                )}
-
-                {onNewFile && (
-                    <MenuItem onClick={() => handleAction(onNewFile)}>
-                        <ListItemText primary="Новый файл" />
-                    </MenuItem>
-                )}
-
-                {onNewFolder && (
-                    <MenuItem onClick={() => handleAction(onNewFolder)}>
-                        <ListItemText primary="Новая папка" />
-                    </MenuItem>
-                )}
-
-                <MenuItem onClick={() => handleAction(onRename)}>
-                    <ListItemText primary="Переименовать" />
-                </MenuItem>
-
-                <MenuItem onClick={() => handleAction(onDelete)} sx={{ color: '#ff5252' }}>
-                    <ListItemText primary="Удалить" />
-                </MenuItem>
-            </List>
-        </MenuPaper>
+            <MenuItem onClick={onRename}>
+                <ListItemIcon sx={{ color: '#e0e0e0', minWidth: '36px' }}>
+                    <EditIcon fontSize="small" />
+                </ListItemIcon>
+                <ListItemText>Переименовать</ListItemText>
+            </MenuItem>
+            <MenuItem onClick={onDelete}>
+                <ListItemIcon sx={{ color: '#e0e0e0', minWidth: '36px' }}>
+                    <DeleteIcon fontSize="small" />
+                </ListItemIcon>
+                <ListItemText>Удалить</ListItemText>
+            </MenuItem>
+        </Menu>
     );
 };

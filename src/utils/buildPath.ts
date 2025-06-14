@@ -1,12 +1,20 @@
 import type {FileSystemItem} from "../pages/DrivePage/types.ts";
 
-export const buildPaths = (items: FileSystemItem[], parentPath = ''): FileSystemItem[] => {
+export const buildPaths = (
+    items: FileSystemItem[],
+    parentPath: string,
+    loaded = false
+): FileSystemItem[] => {
     return items.map(item => {
-        const currentPath = `${parentPath}/${item.name}`.replace('//', '/');
+        const path = parentPath ? `${parentPath}/${item.name}` : item.name;
+
         return {
             ...item,
-            path: currentPath,
-            children: item.children ? buildPaths(item.children, currentPath) : undefined
+            path,
+            loaded,
+            children: item.type === 'directory' && item.children
+                ? buildPaths(item.children, path, loaded)
+                : undefined
         };
     });
 };

@@ -1,13 +1,27 @@
 export type FileSystemItem = {
     name: string;
     path: string;
-    type: 'file' | 'directory';
-    size?: number;
-    modified?: string;
-    children?: FileSystemItem[];
-    newItem?: boolean;
-};
+    loaded?: boolean; // Флаг загрузки содержимого
+} & (
+    | {
+    type: "directory";
+    children?: FileSystemItem[]; // Дети не обязательны
+}
+    | {
+    type: "file";
+    size: number;
+    modified: string;
+}
+    );
 
-export const ItemTypes = {
-    FILE: 'file',
-};
+export type FileSystemActionItem = FileSystemItem & {
+    _action?: 'delete' | 'rename';
+    oldPath?: string;
+}
+
+export interface ContextMenu {
+    mouseX: number;
+    mouseY: number;
+    item: FileSystemItem | null;
+}
+

@@ -1,4 +1,4 @@
-import type { FileSystemItem } from "./types";
+import type {FileSystemItem} from "./types";
 
 export const buildPaths = (items: FileSystemItem[], parentPath: string): FileSystemItem[] => {
     return items.map(item => {

@@ -1,5 +1,5 @@
-import type { FileSystemItem } from "./types";
-import { buildPaths } from "./fileSystemUtils";
+import type {FileSystemItem} from "./types";
+import {buildPaths} from "./fileSystemUtils";
 
 export const getMockFileSystem = (): FileSystemItem[] => {
     const rawData = [
