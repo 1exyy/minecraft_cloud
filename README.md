@@ -22,7 +22,6 @@
 ## 🛠️ Установка и запуск
 
 ```bash
-git clone https://github.com/your-username/minecraft_cloud.git
-cd minecraft_cloud
+git clone https://github.com/1exyy/minecraft_cloud
 npm install
 npm run dev
